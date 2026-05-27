@@ -1,0 +1,180 @@
+/* ── APIPunchClock — Estilos globales ─────────────────────────────── */
+
+:root {
+  --pc-primary:     #1a1a2e;
+  --pc-primary-lt:  #16213e;
+  --pc-accent:      #e94560;
+  --pc-sidebar-w:   240px;
+}
+
+/* ── Reset suave ───────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
+body { background: #f4f6f9; font-family: 'Inter', system-ui, sans-serif; }
+
+/* ── Navbar ────────────────────────────────────────────────────────── */
+.navbar-brand {
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  color: #fff !important;
+}
+.navbar-brand span { color: var(--pc-accent); }
+.navbar { background: var(--pc-primary) !important; }
+.navbar .nav-link { color: rgba(255,255,255,.75) !important; font-size: 14px; }
+.navbar .nav-link:hover,
+.navbar .nav-link.active { color: #fff !important; }
+
+/* ── Layout principal ──────────────────────────────────────────────── */
+.page-wrapper {
+  min-height: calc(100vh - 56px);
+  padding: 2rem 1rem;
+}
+.content-card {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0,0,0,.06);
+  padding: 1.75rem;
+}
+
+/* ── Login ─────────────────────────────────────────────────────────── */
+.login-wrapper {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--pc-primary) 0%, #0f3460 100%);
+}
+.login-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 2.5rem 2rem;
+  width: 100%;
+  max-width: 400px;
+  box-shadow: 0 20px 60px rgba(0,0,0,.25);
+}
+.login-logo {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--pc-primary);
+  letter-spacing: -1px;
+  margin-bottom: .25rem;
+}
+.login-logo span { color: var(--pc-accent); }
+
+/* ── PIN keypad ────────────────────────────────────────────────────── */
+.pin-display {
+  letter-spacing: 10px;
+  font-size: 2rem;
+  font-family: monospace;
+  min-height: 48px;
+  color: var(--pc-primary);
+}
+.pin-dot {
+  display: inline-block;
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  background: #dee2e6;
+  margin: 0 4px;
+  transition: background .15s;
+}
+.pin-dot.filled { background: var(--pc-primary); }
+.numpad { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; }
+.numpad .btn {
+  height: 56px;
+  font-size: 1.2rem;
+  font-weight: 500;
+  border-radius: 10px;
+}
+
+/* ── Stat cards ────────────────────────────────────────────────────── */
+.stat-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 1.25rem 1.5rem;
+  box-shadow: 0 2px 10px rgba(0,0,0,.05);
+  border-left: 4px solid transparent;
+}
+.stat-card.green  { border-color: #198754; }
+.stat-card.red    { border-color: #dc3545; }
+.stat-card.amber  { border-color: #ffc107; }
+.stat-card.blue   { border-color: #0d6efd; }
+.stat-value { font-size: 2.25rem; font-weight: 700; line-height: 1; }
+.stat-label { font-size: .78rem; text-transform: uppercase; letter-spacing: .8px; color: #6c757d; margin-top: 4px; }
+
+/* ── Bar chart ─────────────────────────────────────────────────────── */
+.chart-bar-wrap { display: flex; align-items: flex-end; gap: 8px; height: 100px; padding: 0 4px; }
+.chart-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.bar-bg { width: 100%; height: 80px; display: flex; flex-direction: column; justify-content: flex-end; position: relative; }
+.bar-fill { width: 100%; border-radius: 4px 4px 0 0; transition: height .4s ease; }
+.bar-label { font-size: 10px; color: #6c757d; text-align: center; }
+
+/* ── Clock page ────────────────────────────────────────────────────── */
+.clock-display {
+  font-size: 3.5rem;
+  font-weight: 300;
+  font-family: 'Courier New', monospace;
+  color: var(--pc-primary);
+  letter-spacing: 2px;
+}
+.clock-btn {
+  width: 100%;
+  padding: 1rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  border-radius: 12px;
+  border: none;
+  cursor: pointer;
+  transition: transform .1s, opacity .15s;
+}
+.clock-btn:active { transform: scale(.98); }
+.clock-btn:disabled { opacity: .4; cursor: not-allowed; transform: none; }
+.clock-btn.check-in  { background: #d1e7dd; color: #0a3622; }
+.clock-btn.check-out { background: #f8d7da; color: #58151c; }
+.schedule-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #e9ecef;
+  border-radius: 20px;
+  padding: 4px 12px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+/* ── Tables ─────────────────────────────────────────────────────────── */
+.table th { font-size: 12px; text-transform: uppercase; letter-spacing: .5px; color: #6c757d; }
+.table td { vertical-align: middle; }
+.avatar-circle {
+  width: 34px; height: 34px;
+  border-radius: 50%;
+  background: var(--pc-primary);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ── Empty state ─────────────────────────────────────────────────────── */
+.empty-state {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: #adb5bd;
+}
+.empty-state svg { width: 48px; height: 48px; opacity: .4; margin-bottom: 1rem; }
+
+/* ── Skeleton loader ─────────────────────────────────────────────────── */
+.skeleton {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s infinite;
+  border-radius: 6px;
+}
+@keyframes shimmer { to { background-position: -200% 0; } }
+
+/* ── Responsive tweaks ──────────────────────────────────────────────── */
+@media (max-width: 576px) {
+  .clock-display { font-size: 2.25rem; }
+  .stat-value    { font-size: 1.75rem; }
+  .content-card  { padding: 1.25rem; }
+}

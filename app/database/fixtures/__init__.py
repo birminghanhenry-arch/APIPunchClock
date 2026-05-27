@@ -1,0 +1,9 @@
+from app.database.fixtures.reference_data import (
+    DEPARTMENTS, SHIFTS, SCHEDULES,
+    CLOCK_EVENT_TYPES, CLOCK_STATUSES, DEPT_SCHEDULE_MAP,
+)
+
+__all__ = [
+    "DEPARTMENTS", "SHIFTS", "SCHEDULES",
+    "CLOCK_EVENT_TYPES", "CLOCK_STATUSES", "DEPT_SCHEDULE_MAP",
+]

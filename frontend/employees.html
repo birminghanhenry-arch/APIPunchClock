@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>APIPunchClock — Empleados</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="css/styles.css" rel="stylesheet">
+</head>
+<body>
+
+<div id="navbar-container"></div>
+
+<div class="page-wrapper">
+  <div class="container-fluid" style="max-width:1100px">
+
+    <div id="alert-box" class="mb-3"></div>
+
+    <div class="content-card">
+      <!-- Header -->
+      <div class="d-flex flex-wrap gap-2 justify-content-between align-items-center mb-4">
+        <div>
+          <h5 class="fw-bold mb-0">Empleados</h5>
+          <p class="text-muted small mb-0" id="emp-count">—</p>
+        </div>
+        <div class="d-flex gap-2">
+          <input type="text" class="form-control form-control-sm" id="search" placeholder="Buscar nombre o depto…" style="width:220px" oninput="filterTable()">
+          <button class="btn btn-sm btn-dark" onclick="loadEmployees()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16" class="me-1"><path d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2z"/><path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466"/></svg>
+            Actualizar
+          </button>
+        </div>
+      </div>
+
+      <!-- Filtro por departamento -->
+      <div class="mb-3 d-flex flex-wrap gap-2" id="dept-filters">
+        <span class="badge rounded-pill text-bg-dark dept-pill active" data-dept="">Todos</span>
+      </div>
+
+      <!-- Tabla -->
+      <div class="table-responsive">
+        <table class="table table-hover align-middle">
+          <thead>
+            <tr>
+              <th style="width:40px"></th>
+              <th>Nombre</th>
+              <th>Departamento</th>
+              <th>Tipo horario</th>
+              <th>Tolerancia</th>
+              <th>Rol</th>
+              <th>Horario hoy</th>
+            </tr>
+          </thead>
+          <tbody id="emp-tbody">
+            <tr><td colspan="7">
+              <div class="skeleton mb-2" style="height:44px;border-radius:6px"></div>
+              <div class="skeleton mb-2" style="height:44px;border-radius:6px"></div>
+              <div class="skeleton" style="height:44px;border-radius:6px"></div>
+            </td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Modal: Horario del empleado -->
+<div class="modal fade" id="scheduleModal" tabindex="-1">
+  <div class="modal-dialog modal-sm modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header py-2">
+        <h6 class="modal-title fw-semibold" id="modal-emp-name">Horario</h6>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body small" id="modal-schedule-body">Cargando…</div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="js/api.js"></script>
+<script>
+  Session.requireAuth();
+
+  let allEmployees = [];
+  let activeFilter = "";
+
+  // Navbar
+  fetch("_navbar.html").then(r=>r.text()).then(html=>{
+    document.getElementById("navbar-container").innerHTML = html;
+    renderNavUser();
+    document.querySelectorAll("[data-page='employees']").forEach(a=>a.classList.add("active"));
+  });
+
+  async function loadEmployees() {
+    const tbody = document.getElementById("emp-tbody");
+    try {
+      allEmployees = await Api.listEmployees();
+
+      // Build dept pills
+      const depts = [...new Set(allEmployees.map(e => e.department))].sort();
+      const pillsHtml = `<span class="badge rounded-pill text-bg-dark dept-pill ${activeFilter===''?'active':''}" data-dept="">Todos</span>`
+        + depts.map(d => `<span class="badge rounded-pill text-bg-light border dept-pill ${activeFilter===d?'active':''}" data-dept="${d}" style="cursor:pointer">${d}</span>`).join("");
+      document.getElementById("dept-filters").innerHTML = pillsHtml;
+      document.querySelectorAll(".dept-pill").forEach(p => p.addEventListener("click", () => {
+        activeFilter = p.dataset.dept;
+        document.querySelectorAll(".dept-pill").forEach(x=>x.classList.toggle("active", x===p));
+        document.querySelector(".dept-pill.active")?.classList.toggle("text-bg-dark",true);
+        renderTable(filtered());
+      }));
+
+      renderTable(allEmployees);
+      document.getElementById("emp-count").textContent = `${allEmployees.length} empleados activos`;
+    } catch(e) {
+      tbody.innerHTML = `<tr><td colspan="7"><div class="alert alert-danger small">${e.detail}</div></td></tr>`;
+    }
+  }
+
+  function filtered() {
+    const q = document.getElementById("search").value.toLowerCase();
+    return allEmployees.filter(e => {
+      const matchDept = !activeFilter || e.department === activeFilter;
+      const matchQ    = !q || e.full_name.toLowerCase().includes(q) || e.department.toLowerCase().includes(q);
+      return matchDept && matchQ;
+    });
+  }
+
+  function filterTable() { renderTable(filtered()); }
+
+  function renderTable(employees) {
+    const tbody = document.getElementById("emp-tbody");
+    if (!employees.length) {
+      tbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted py-4 small">Sin resultados</td></tr>`;
+      return;
+    }
+    tbody.innerHTML = employees.map(e => `
+      <tr>
+        <td><div class="avatar-circle">${e.initials}</div></td>
+        <td>
+          <div class="fw-semibold small">${titleCase(e.full_name)}</div>
+          <div class="text-muted" style="font-size:11px">ID #${e.id}</div>
+        </td>
+        <td><span class="badge text-bg-light border">${e.department}</span></td>
+        <td>
+          <span class="badge ${e.schedule_type==='fixed'?'text-bg-primary':'text-bg-info'}">
+            ${e.schedule_type === 'fixed' ? 'Fijo' : 'Flexible'}
+          </span>
+        </td>
+        <td class="small">${e.tolerance_minutes} min</td>
+        <td>
+          ${e.is_admin
+            ? '<span class="badge text-bg-warning">Admin</span>'
+            : '<span class="badge text-bg-light border text-muted">Empleado</span>'}
+        </td>
+        <td>
+          <button class="btn btn-xs btn-outline-secondary" style="font-size:11px;padding:2px 8px"
+            onclick="showSchedule(${e.id}, '${e.full_name}')">Ver horario</button>
+        </td>
+      </tr>`).join("");
+  }
+
+  const scheduleModal = new bootstrap.Modal(document.getElementById("scheduleModal"));
+
+  async function showSchedule(empId, name) {
+    document.getElementById("modal-emp-name").textContent = titleCase(name);
+    document.getElementById("modal-schedule-body").textContent = "Cargando…";
+    scheduleModal.show();
+    try {
+      const asgn = await Api.getAssignment(empId);
+      if (!asgn.jornada1) {
+        document.getElementById("modal-schedule-body").innerHTML = "<p class='text-muted mb-0'>Sin asignación hoy.</p>";
+        return;
+      }
+      const j1 = asgn.jornada1;
+      let html = `
+        <div class="mb-2">
+          <div class="text-muted small">Jornada 1 — ${j1.shift_name}</div>
+          <div class="fw-semibold">${fmtTime(j1.check_in_time)} → ${fmtTime(j1.check_out_time)}</div>
+          <div class="text-muted small">Tolerancia: ${j1.tolerance_minutes} min</div>
+        </div>`;
+      if (asgn.jornada2) {
+        const j2 = asgn.jornada2;
+        html += `
+          <hr class="my-2">
+          <div>
+            <div class="text-muted small">Jornada 2 — ${j2.shift_name}</div>
+            <div class="fw-semibold">${fmtTime(j2.check_in_time)} → ${fmtTime(j2.check_out_time)}</div>
+            <div class="text-muted small">Tolerancia: ${j2.tolerance_minutes} min</div>
+          </div>`;
+      }
+      document.getElementById("modal-schedule-body").innerHTML = html;
+    } catch(e) {
+      document.getElementById("modal-schedule-body").innerHTML = `<p class="text-danger small">${e.detail}</p>`;
+    }
+  }
+
+  loadEmployees();
+</script>
+</body>
+</html>

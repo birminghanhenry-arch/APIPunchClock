@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>APIPunchClock — Acceso</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="css/styles.css" rel="stylesheet">
+</head>
+<body>
+<div class="login-wrapper">
+  <div class="login-card">
+    <div class="text-center mb-4">
+      <div class="login-logo">Punch<span>Clock</span></div>
+      <p class="text-muted small mb-0">Control de Asistencia</p>
+    </div>
+
+    <div id="alert-box"></div>
+
+    <!-- PIN dots -->
+    <div class="text-center mb-3">
+      <div class="d-flex justify-content-center gap-2 mb-2">
+        <span class="pin-dot" id="d0"></span>
+        <span class="pin-dot" id="d1"></span>
+        <span class="pin-dot" id="d2"></span>
+        <span class="pin-dot" id="d3"></span>
+      </div>
+      <p class="text-muted small">Ingresa tu PIN de 4 dígitos</p>
+    </div>
+
+    <!-- Numpad -->
+    <div class="numpad mb-3">
+      <button class="btn btn-outline-secondary numpad-key" data-d="1">1</button>
+      <button class="btn btn-outline-secondary numpad-key" data-d="2">2</button>
+      <button class="btn btn-outline-secondary numpad-key" data-d="3">3</button>
+      <button class="btn btn-outline-secondary numpad-key" data-d="4">4</button>
+      <button class="btn btn-outline-secondary numpad-key" data-d="5">5</button>
+      <button class="btn btn-outline-secondary numpad-key" data-d="6">6</button>
+      <button class="btn btn-outline-secondary numpad-key" data-d="7">7</button>
+      <button class="btn btn-outline-secondary numpad-key" data-d="8">8</button>
+      <button class="btn btn-outline-secondary numpad-key" data-d="9">9</button>
+      <button class="btn btn-outline-light" id="btn-clr">C</button>
+      <button class="btn btn-outline-secondary numpad-key" data-d="0">0</button>
+      <button class="btn btn-outline-secondary" id="btn-del">⌫</button>
+    </div>
+
+    <button class="btn btn-dark w-100 py-2 fw-bold" id="btn-login" disabled>Ingresar</button>
+    <p class="text-center text-muted small mt-3 mb-0">¿No tienes PIN? Contacta a tu administrador.</p>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="js/api.js"></script>
+<script>
+  if (Session.get()) location.href = "dashboard.html";
+
+  let pin = "";
+
+  function sync() {
+    for (let i = 0; i < 4; i++)
+      document.getElementById("d" + i).classList.toggle("filled", i < pin.length);
+    document.getElementById("btn-login").disabled = pin.length !== 4;
+    if (pin.length === 4) submit();
+  }
+
+  const add = (d) => { if (pin.length < 4) { pin += d; sync(); } };
+  const del = ()  => { pin = pin.slice(0,-1); sync(); document.getElementById("alert-box").innerHTML=""; };
+  const clr = ()  => { pin = ""; sync(); document.getElementById("alert-box").innerHTML=""; };
+
+  document.querySelectorAll(".numpad-key").forEach(b => b.addEventListener("click", () => add(b.dataset.d)));
+  document.getElementById("btn-del").addEventListener("click", del);
+  document.getElementById("btn-clr").addEventListener("click", clr);
+  document.getElementById("btn-login").addEventListener("click", submit);
+  document.addEventListener("keydown", e => {
+    if (e.key >= "0" && e.key <= "9") add(e.key);
+    if (e.key === "Backspace") del();
+    if (e.key === "Escape") clr();
+  });
+
+  async function submit() {
+    if (pin.length !== 4) return;
+    const btn = document.getElementById("btn-login");
+    document.querySelectorAll(".numpad-key,#btn-del,#btn-clr").forEach(b => b.disabled = true);
+    try {
+      await withLoading(btn, async () => {
+        const emp = await Api.login(pin);
+        Session.save(emp);
+        location.href = "dashboard.html";
+      });
+    } catch(err) {
+      showAlert("alert-box", err.status === 401 ? "PIN incorrecto." : `Error: ${err.detail}`, "danger");
+      clr();
+    } finally {
+      document.querySelectorAll(".numpad-key,#btn-del,#btn-clr").forEach(b => b.disabled = false);
+    }
+  }
+</script>
+</body>
+</html>
