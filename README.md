@@ -13,7 +13,6 @@ El proyecto permite gestionar el proceso de marcaje de entrada y salida mediante
 ![Alembic](https://img.shields.io/badge/Alembic-1.13+-6BA539?style=flat-square)
 ![JWT](https://img.shields.io/badge/Auth-JWT_HS256-000000?style=flat-square&logo=jsonwebtokens&logoColor=white)
 ![Bootstrap](https://img.shields.io/badge/Bootstrap-5.3-7952B3?style=flat-square&logo=bootstrap&logoColor=white)
-![License: MIT](https://img.shields.io/badge/License-MIT-F7B731?style=flat-square)
 
 </div>
 
@@ -392,17 +391,9 @@ python -m alembic upgrade head --sql
 
 ---
 
-## Licencia
-
-Distribuido bajo la licencia **MIT**. Consultar el archivo [LICENSE](LICENSE) para mas informacion.
-
----
-
 ## Autor
 
 **Henry Birminghan**
-
-Estudiante de Desarrollo de Software enfocado en desarrollo backend, arquitectura de aplicaciones y diseno de bases de datos relacionales.
 
 [![GitHub](https://img.shields.io/badge/GitHub-birminghanhenryarch-181717?style=flat-square&logo=github&logoColor=white)](https://github.com/birminghanhenryarch)
 
