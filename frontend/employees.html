@@ -155,9 +155,17 @@
         </td>
         <td>
           <button class="btn btn-xs btn-outline-secondary" style="font-size:11px;padding:2px 8px"
-            onclick="showSchedule(${e.id}, '${e.full_name}')">Ver horario</button>
+            data-emp-id="${e.id}">Ver horario</button>
         </td>
       </tr>`).join("");
+
+    // El nombre nunca entra al HTML; se recupera del array en memoria por ID.
+    tbody.querySelectorAll("[data-emp-id]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const emp = allEmployees.find(e => e.id === parseInt(btn.dataset.empId, 10));
+        if (emp) showSchedule(emp.id, emp.full_name);
+      });
+    });
   }
 
   const scheduleModal = new bootstrap.Modal(document.getElementById("scheduleModal"));
