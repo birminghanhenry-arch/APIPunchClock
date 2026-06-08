@@ -176,7 +176,7 @@
 
     try {
       await withLoading(btn, async () => {
-        const result = await Api.clockEvent(emp.id, eventType);
+        const result = await Api.clockEvent(eventType);
         const label  = eventType === "check_in" ? "Entrada" : "Salida";
         const alertType = result.status === "late" ? "warning" : "success";
         const msg = result.status === "late"

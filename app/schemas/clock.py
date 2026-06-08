@@ -6,8 +6,7 @@ from pydantic import BaseModel, field_validator
 
 
 class ClockRequest(BaseModel):
-    employee_id: int
-    event_type:  str   # "check_in" | "check_out"
+    event_type: str   # "check_in" | "check_out"
 
     @field_validator("event_type")
     @classmethod
