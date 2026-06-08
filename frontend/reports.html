@@ -117,22 +117,25 @@
   });
 
   async function loadReport() {
-    const days   = parseInt(document.getElementById("sel-days").value);
-    const tbody  = document.getElementById("records-tbody");
-    const sumRow = document.getElementById("summary-row");
+    const days  = parseInt(document.getElementById("sel-days").value);
+    const tbody = document.getElementById("records-tbody");
+
+    // Calcular rango en hora local (evita desfase UTC)
+    const pad   = n => String(n).padStart(2, "0");
+    const fmtD  = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+    const now   = new Date();
+    const start = new Date(now);
+    start.setDate(now.getDate() - (days - 1));
+    const endDate   = fmtD(now);
+    const startDate = fmtD(start);
 
     try {
-      // Cargar registros de los últimos N días (usamos clock/today para hoy + daily report)
-      // clock/today devuelve solo hoy; para histórico usamos dailyReport para el resumen
-      // y clock/today sin filtro para la tabla (limitado a hoy en la API actual)
-      // — Nota: la API actual solo expone /clock/today. Aquí mostramos los de hoy
-      //   y el resumen diario de los últimos N días.
-      const [todayRec, dailyData] = await Promise.all([
-        Api.clockToday(),
+      const [rangeRec, dailyData] = await Promise.all([
+        Api.clockRange(startDate, endDate),
         Api.dailyReport(days),
       ]);
 
-      allRecords = todayRec;
+      allRecords = rangeRec;
       applyFilters();
       renderSummary(dailyData);
 

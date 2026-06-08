@@ -10,19 +10,17 @@ import csv, io
 from datetime import date, timedelta
 from sqlalchemy.orm import Session
 
-from app.models        import Employee
+from app.models        import ClockRecord
 from app.core.utils    import fmt_time
-from app.repositories  import clock_repo
-
-EVENT_ID_TO_NAME  = {1: "check_in",  2: "check_out"}
-STATUS_ID_TO_NAME = {1: "on_time",   2: "late",    3: "flexible"}
+from app.core.constants import EVENT_ID_TO_NAME, STATUS_ID_TO_NAME
+from app.repositories  import clock_repo, employee_repo
 
 
 # ── Estadísticas del día ──────────────────────────────────────────────────────
 
 def get_today_stats(db: Session) -> dict:
     today       = date.today()
-    total       = db.query(Employee).filter(Employee.active == True).count()
+    total       = employee_repo.count_active(db)
     check_ins   = clock_repo.get_check_ins_for_date(db, today)
 
     active_set  = {r.employee_id for r in check_ins}
@@ -44,7 +42,7 @@ def get_today_stats(db: Session) -> dict:
 def get_daily_report(db: Session, days: int) -> list[dict]:
     today      = date.today()
     start_date = today - timedelta(days=days - 1)
-    total      = db.query(Employee).filter(Employee.active == True).count()
+    total      = employee_repo.count_active(db)
     records    = clock_repo.get_check_ins_range(db, start_date, today)
 
     day_map: dict[str, dict] = {}
@@ -86,6 +84,11 @@ def generate_csv(db: Session, since: str | None, until: str | None) -> tuple[io.
                     row["check_in"], row["check_out"], row["status"], row["late"]])
     buf.seek(0)
     return buf, f"asistencia_{date_since}_{date_until}.csv"
+
+
+def get_clock_records_range(db: Session, start_date: date, end_date: date) -> list[ClockRecord]:
+    """Marcajes crudos en un rango de fechas para el endpoint /clock/range."""
+    return clock_repo.get_between_dates(db, start_date, end_date)
 
 
 def _pivot(records) -> list[dict]:

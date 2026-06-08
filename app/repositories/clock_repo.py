@@ -72,6 +72,20 @@ def get_check_ins_range(db: Session, date_since: date, date_until: date) -> list
     )
 
 
+def get_between_dates(db: Session, start_date: date, end_date: date) -> list[ClockRecord]:
+    """Marcajes en un rango de fechas, orden descendente para tablas."""
+    return (
+        db.query(ClockRecord)
+        .options(joinedload(ClockRecord.employee).joinedload(Employee.department))
+        .filter(
+            ClockRecord.work_date >= start_date,
+            ClockRecord.work_date <= end_date,
+        )
+        .order_by(ClockRecord.work_date.desc(), ClockRecord.created_at.desc())
+        .all()
+    )
+
+
 def save(db: Session, record: ClockRecord) -> ClockRecord:
     """Persiste un nuevo marcaje y lo retorna con su id asignado."""
     db.add(record)
