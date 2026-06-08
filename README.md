@@ -55,33 +55,33 @@ El sistema soporta:
 
 > El proyecto fue migrado desde SQLite a PostgreSQL para asegurar soporte optimo en entornos de produccion, aprovechando el tipo nativo UUID, indices compuestos, constraints y el manejo de zonas horarias.
 
----
-
 ## Arquitectura del sistema
 
 APIPunchClock implementa una arquitectura en capas con dependencias estrictamente unidireccionales. Ninguna capa conoce la existencia de la capa que la invoca, garantizando bajo acoplamiento y alta cohesion.
-───────────────────────────────────────────────────────────────────── ┐
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
 │                         HTTP Request / Response                     │
 └──────────────────────────────┬──────────────────────────────────────┘
-│
-▼
+                               │
+                               ▼
 ╔═════════════════════════════════════════════════════════════════════╗
 ║             CAPA 1 — ROUTERS & SCHEMAS  (API Layer)                ║
 ║  app/routers/  —  auth · clock · employees · reports               ║
 ║  app/schemas/  —  LoginRequest · ClockRequest · EmployeeOut        ║
-║                                                                    ║
+║                                                                     ║
 ║  · Punto de entrada unico para todas las solicitudes HTTP          ║
 ║  · Validacion automatica y rigurosa de payloads con Pydantic       ║
 ║  · Extraccion y verificacion del JWT mediante Depends()            ║
 ║  · Serializacion de respuestas a traves de schemas tipados         ║
 ║  · No contiene logica de negocio ni acceso directo a la BD         ║
 ╚══════════════════════════════╦══════════════════════════════════════╝
-║  invoca
-▼
+                               ║  invoca
+                               ▼
 ╔═════════════════════════════════════════════════════════════════════╗
 ║             CAPA 2 — SERVICES  (Business Logic Layer)              ║
 ║  app/services/  —  clock_service · report_service                  ║
-║                                                                    ║
+║                                                                     ║
 ║  · Capa aislada donde reside toda la logica de negocio pura        ║
 ║  · Validacion de reglas del dominio: secuencia de eventos,         ║
 ║    tolerancias, turno partido, cruce de medianoche nocturno        ║
@@ -89,35 +89,38 @@ APIPunchClock implementa una arquitectura en capas con dependencias estrictament
 ║  · Generacion de estadisticas, reportes y exportacion CSV          ║
 ║  · Orquesta llamadas al Repository — nunca ejecuta queries         ║
 ╚══════════════════════════════╦══════════════════════════════════════╝
-║  delega acceso a datos
-▼
+                               ║  delega acceso a datos
+                               ▼
 ╔═════════════════════════════════════════════════════════════════════╗
 ║             CAPA 3 — REPOSITORIES  (Data Access Layer)             ║
 ║  app/repositories/  —  employee_repo · clock_repo                  ║
-║                                                                    ║
+║                                                                     ║
 ║  · Unica capa autorizada para escribir queries SQLAlchemy ORM      ║
 ║  · Encapsula filtros, joins, ordenamientos y eager loading         ║
 ║  · Implementa el Patron Repositorio para abstraer la fuente        ║
 ║  · Utiliza joinedload para prevenir el problema de consultas N+1   ║
 ║  · No aplica reglas de negocio ni lanza excepciones HTTP           ║
 ╚══════════════════════════════╦══════════════════════════════════════╝
-║  persiste y consulta
-▼
+                               ║  persiste y consulta
+                               ▼
 ╔═════════════════════════════════════════════════════════════════════╗
 ║             CAPA 4 — MODELS & DATABASE  (Persistence Layer)        ║
 ║  app/models/  —  Employee · ClockRecord · Assignment · ...         ║
-║                                                                    ║
+║                                                                     ║
 ║  · Definicion declarativa de entidades y relaciones (ORM)          ║
 ║  · Constraints, indices compuestos y UUIDs optimizados para PG     ║
 ║  · Esquema versionado y reproducible mediante Alembic              ║
-║  · Separacion entre clock_time (normalizada) y real_time (RRHH)    ║
+║  · Separacion entre clock_time (normalizada) y real_time (RRHH)   ║
 ╚═════════════════════════════════════════════════════════════════════╝
+```
 
 > Regla de oro: las dependencias fluyen exclusivamente hacia abajo. Un Router llama a un Service. Un Service nunca importa de un Router. Un Repository nunca conoce la existencia de un Service.
 
 ---
 
 ## Estructura del proyecto
+
+```
 APIPUNCHCLOCK/
 ├── app/
 │   ├── core/                  # Configuracion central y utilidades transversales
@@ -155,8 +158,7 @@ APIPUNCHCLOCK/
 ├── main.py
 ├── README.md
 └── requirements.txt
-
----
+```
 
 ## Funcionalidades principales
 
