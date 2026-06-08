@@ -2,6 +2,7 @@
 app/schemas/employee.py
 Schemas de entrada y salida para empleados y asignaciones.
 """
+from __future__ import annotations
 from pydantic import BaseModel, field_validator
 
 
@@ -44,3 +45,10 @@ class AssignmentOut(BaseModel):
     """Hasta dos jornadas por día. jornada2 = None si no hay turno partido."""
     jornada1: ScheduleOut | None
     jornada2: ScheduleOut | None
+
+
+class LoginResponse(BaseModel):
+    """Respuesta de login: token JWT + datos del empleado."""
+    access_token: str
+    token_type:   str = "bearer"
+    employee:     EmployeeOut

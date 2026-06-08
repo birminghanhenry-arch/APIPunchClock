@@ -8,6 +8,7 @@ from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
 from app.core.database  import get_db
+from app.core.security  import get_current_user
 from app.schemas        import StatsOut, DailyReportRow
 from app.services       import get_today_stats, get_daily_report, generate_csv
 
@@ -15,7 +16,10 @@ router = APIRouter(tags=["Reports"])
 
 
 @router.get("/stats/today", response_model=StatsOut)
-def today_stats(db: Session = Depends(get_db)):
+def today_stats(
+    db: Session = Depends(get_db),
+    _:  object  = Depends(get_current_user),
+):
     return StatsOut(**get_today_stats(db))
 
 
@@ -23,6 +27,7 @@ def today_stats(db: Session = Depends(get_db)):
 def daily_report(
     days: int = Query(default=7, ge=1, le=60),
     db:   Session = Depends(get_db),
+    _:    object  = Depends(get_current_user),
 ):
     return [DailyReportRow(**row) for row in get_daily_report(db, days)]
 
@@ -32,6 +37,7 @@ def export_csv(
     since: str = Query(default=None),
     until: str = Query(default=None),
     db:    Session = Depends(get_db),
+    _:     object  = Depends(get_current_user),
 ):
     buf, filename = generate_csv(db, since, until)
     return StreamingResponse(

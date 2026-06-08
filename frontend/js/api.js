@@ -2,31 +2,41 @@
  * api.js — Capa centralizada de comunicación con APIPunchClock API
  *
  * Configuración:
- *   Cambia BASE_URL a la dirección de tu backend.
- *   En desarrollo: http://localhost:8765
- *   En producción: https://tu-dominio.com
+ *   Sin cambios de código para desplegar. Opciones en orden de prioridad:
+ *
+ *   1. window.APP_CONFIG.apiUrl  → define antes de cargar este script:
+ *        <script>window.APP_CONFIG = { apiUrl: "https://api.ejemplo.com" };</script>
+ *
+ *   2. window.location.origin   → default: misma origen que el HTML.
+ *        Funciona en dev (uvicorn sirve el frontend) y en reverse proxy.
  */
-const BASE_URL = "http://localhost:8765";
+const BASE_URL = window.APP_CONFIG?.apiUrl ?? window.location.origin;
 
 // ── Sesión ────────────────────────────────────────────────────────────────────
-// El backend usa PIN (no JWT). Guardamos el objeto empleado en sessionStorage.
+// Login devuelve { access_token, token_type, employee }.
+// Guardamos token y employee por separado en sessionStorage.
 
 const Session = {
-  save(employee) {
-    sessionStorage.setItem("employee", JSON.stringify(employee));
+  save(loginResponse) {
+    sessionStorage.setItem("token",    loginResponse.access_token);
+    sessionStorage.setItem("employee", JSON.stringify(loginResponse.employee));
   },
   get() {
     const raw = sessionStorage.getItem("employee");
     return raw ? JSON.parse(raw) : null;
   },
+  getToken() {
+    return sessionStorage.getItem("token");
+  },
   clear() {
+    sessionStorage.removeItem("token");
     sessionStorage.removeItem("employee");
   },
   isAdmin() {
     return this.get()?.is_admin ?? false;
   },
   requireAuth() {
-    if (!this.get()) {
+    if (!this.get() || !this.getToken()) {
       window.location.href = "/frontend/index.html";
     }
   },
@@ -40,9 +50,8 @@ async function request(method, path, body = null) {
     headers: { "Content-Type": "application/json" },
   };
 
-  // Si el backend implementa JWT en el futuro, descomentar:
-  // const token = Session.get()?.token;
-  // if (token) opts.headers["Authorization"] = `Bearer ${token}`;
+  const token = Session.getToken();
+  if (token) opts.headers["Authorization"] = `Bearer ${token}`;
 
   if (body) opts.body = JSON.stringify(body);
 
@@ -85,12 +94,17 @@ const Api = {
   },
 
   // Clock
-  clockEvent: (employeeId, eventType) =>
-    request("POST", "/clock", { employee_id: employeeId, event_type: eventType }),
+  clockEvent: (eventType) =>
+    request("POST", "/clock", { event_type: eventType }),
 
   clockToday: (employeeId = null) => {
     const qs = employeeId ? `?employee_id=${employeeId}` : "";
     return request("GET", `/clock/today${qs}`);
+  },
+
+  clockRange: (startDate, endDate) => {
+    const params = new URLSearchParams({ start_date: startDate, end_date: endDate });
+    return request("GET", `/clock/range?${params}`);
   },
 
   // Reports

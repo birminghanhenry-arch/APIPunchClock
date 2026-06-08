@@ -13,6 +13,8 @@ class Settings(BaseSettings):
     CORS_ORIGINS: list[str] = ["*"]
     DEFAULT_TOLERANCE_MINUTES:  int = 10
     FLEXIBLE_TOLERANCE_MINUTES: int = 15
+    SECRET_KEY:                 str = "cambia-este-valor-en-produccion"
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 480
 
     model_config = {"env_file": ".env", "env_file_encoding": "utf-8"}
 

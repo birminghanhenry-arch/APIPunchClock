@@ -7,6 +7,7 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
 from app.core.database  import get_db
+from app.core.security  import get_current_user
 from app.core.utils     import time_to_minutes, fmt_time
 from app.schemas        import EmployeeOut, AssignmentOut, ScheduleOut
 from app.repositories   import employee_repo
@@ -16,7 +17,10 @@ router = APIRouter(prefix="/employees", tags=["Employees"])
 
 
 @router.get("", response_model=list[EmployeeOut])
-def list_employees(db: Session = Depends(get_db)):
+def list_employees(
+    db: Session = Depends(get_db),
+    _:  object  = Depends(get_current_user),
+):
     return [
         EmployeeOut(
             id=e.id, full_name=e.full_name,
@@ -34,6 +38,7 @@ def get_assignment(
     employee_id: int,
     work_date: str = Query(default=None, description="YYYY-MM-DD (default: hoy)"),
     db: Session = Depends(get_db),
+    _:  object  = Depends(get_current_user),
 ):
     target = date.fromisoformat(work_date) if work_date else date.today()
     assignments = employee_repo.get_assignments_for_date(db, employee_id, target)
