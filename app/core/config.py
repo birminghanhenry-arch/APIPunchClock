@@ -6,7 +6,7 @@ from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
-    DATABASE_URL: str  = "sqlite:///./punchclock.db"
+    DATABASE_URL: str  = "postgresql+psycopg://postgres:postgres@localhost:5432/apipunchclock"
     APP_TITLE:    str  = "PunchClock API"
     APP_VERSION:  str  = "2.0.0"
     DEBUG:        bool = False

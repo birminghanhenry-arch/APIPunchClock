@@ -5,6 +5,4 @@ pydantic>=2.7.0
 pydantic-settings>=2.2.0
 faker>=25.0.0
 python-jose[cryptography]>=3.3.0
-
-# PostgreSQL (descomentar en producción)
-# psycopg2-binary>=2.9.9
+psycopg[binary]>=3.1.0

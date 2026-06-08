@@ -8,8 +8,11 @@ from app.core.config import settings
 
 
 def _build_engine():
-    kwargs = {"check_same_thread": False} if settings.DATABASE_URL.startswith("sqlite") else {}
-    return create_engine(settings.DATABASE_URL, connect_args=kwargs, echo=settings.DEBUG)
+    return create_engine(
+        settings.DATABASE_URL,
+        echo=settings.DEBUG,
+        pool_pre_ping=True,   # descarta conexiones caídas antes de usarlas
+    )
 
 
 engine       = _build_engine()
