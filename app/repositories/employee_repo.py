@@ -11,6 +11,11 @@ from sqlalchemy.orm import Session, joinedload
 from app.models import Employee, Assignment, Schedule
 
 
+def count_active(db: Session) -> int:
+    """Total de empleados activos (para estadísticas y reportes)."""
+    return db.query(Employee).filter(Employee.active == True).count()
+
+
 def get_by_pin(db: Session, pin: str) -> Employee | None:
     return (
         db.query(Employee)
